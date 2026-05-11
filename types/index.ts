@@ -1,28 +1,19 @@
+export type OccurrenceType = 'estrutura' | 'atendimento' | 'acessibilidade' | 'limpeza';
+export type Severity       = 'baixa' | 'media' | 'alta';
+
 export type Place = {
-  id: string;
-  name: string;
+  id:      string;
+  name:    string;
   address: string;
-  visits: string;
-  icon: string;
-  color: string;
+  count:   string;
+  icon:    string;
+  color:   string;
 };
 
-export type EvalType = 'estrutura' | 'atendimento' | 'acessibilidade' | 'limpeza';
-
-export type DateTime = {
-  day: number;
-  month: number;
-  year: number;
-  hour: number;
-  minute: number;
-};
-
-export type ReviewData = {
-  place: Place;
-  dateTime: DateTime;
-  evalType: EvalType | null;
-  stars: number;
+export type OccurrenceData = {
+  place:       Place;
+  dateTime:    string;
+  type:        OccurrenceType;
+  severity:    Severity;
   description: string;
 };
-
-export type Screen = 'form' | 'success';

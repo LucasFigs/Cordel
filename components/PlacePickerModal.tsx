@@ -8,10 +8,10 @@ import { Place } from '../types';
 import { C, PLACES } from '../constants';
 
 type Props = {
-  visible: boolean;
-  current: Place;
+  visible:  boolean;
+  current:  Place;
   onSelect: (place: Place) => void;
-  onClose: () => void;
+  onClose:  () => void;
 };
 
 export default function PlacePickerModal({ visible, current, onSelect, onClose }: Props) {
@@ -41,7 +41,7 @@ export default function PlacePickerModal({ visible, current, onSelect, onClose }
                     <Text style={[s.rowName, active && { color: C.primary }]}>{item.name}</Text>
                     <Text style={s.rowAddr}>{item.address}</Text>
                   </View>
-                  <Text style={s.rowVisits}>{item.visits}</Text>
+                  <Text style={s.rowCount}>{item.count}</Text>
                   {active && (
                     <Ionicons name="checkmark-circle" size={18} color={C.primary} style={{ marginLeft: 6 }} />
                   )}
@@ -110,7 +110,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  rowName: { fontSize: 14, fontWeight: '600', color: C.text },
-  rowAddr: { fontSize: 11, color: C.textSub, marginTop: 1 },
-  rowVisits: { fontSize: 11, color: C.textMuted, fontWeight: '600' },
+  rowName:  { fontSize: 14, fontWeight: '600', color: C.text },
+  rowAddr:  { fontSize: 11, color: C.textSub,  marginTop: 1 },
+  rowCount: { fontSize: 11, color: C.textMuted, fontWeight: '600' },
 });
