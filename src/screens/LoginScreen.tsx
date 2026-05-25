@@ -21,8 +21,9 @@ const CARD         = '#FFFFFF';
 const BG           = '#F7F8FA';
 
 interface LoginScreenProps {
-  onLogin:    (profile: UserProfile) => void;
-  onRegister: () => void;
+  onLogin:           (profile: UserProfile) => void;
+  onRegister:        () => void;
+  onForgotPassword:  () => void;
 }
 
 async function getOrCreateProfile(user: any, role: 'visitante' | 'admin' = 'visitante'): Promise<UserProfile> {

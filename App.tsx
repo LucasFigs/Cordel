@@ -221,10 +221,15 @@ export default function App() {
           <LoginScreen
             onLogin={handleLogin}
             onRegister={() => setAuthFlow('register')}
+            onForgotPassword={() => setAuthFlow('forgot')}
           />
-        ) : (
+        ) : authFlow === 'register' ? (
           <RegisterScreen
             onRegister={handleRegister}
+            onBack={() => setAuthFlow('login')}
+          />
+        ) : (
+          <ForgotPasswordScreen
             onBack={() => setAuthFlow('login')}
           />
         )}
@@ -304,3 +309,5 @@ export default function App() {
     </View>
   );
 }
+
+// pra rodar
