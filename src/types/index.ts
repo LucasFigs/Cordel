@@ -48,5 +48,5 @@ export type ToastType  = 'success' | 'error' | 'loading';
 export type ToastState = { visible: boolean; type: ToastType; message: string };
 
 // ── Navegação ────────────────────────────────────────────────────────────
-export type AuthFlow = 'login' | 'register';
+export type AuthFlow = 'login' | 'register' | 'forgot';
 export type MainTab  = 'registrar' | 'historico' | 'perfil';

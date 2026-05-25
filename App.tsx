@@ -6,13 +6,14 @@ import {
   AuthFlow, MainTab,
 } from './src/types';
 
-import { BottomNav }          from './src/components/BottomNav';
-import { LoginScreen }        from './src/screens/LoginScreen';
-import { RegisterScreen }     from './src/screens/RegisterScreen';
-import { FormScreen }         from './src/screens/FormScreen';
-import { ConfirmationScreen } from './src/screens/ConfirmationScreen';
-import { HistoryScreen }      from './src/screens/HistoryScreen';
-import { ProfileScreen }      from './src/screens/ProfileScreen';
+import { BottomNav }             from './src/components/BottomNav';
+import { LoginScreen }           from './src/screens/LoginScreen';
+import { RegisterScreen }        from './src/screens/RegisterScreen';
+import { ForgotPasswordScreen }  from './src/screens/Forgotpasswordscreen';
+import { FormScreen }            from './src/screens/FormScreen';
+import { ConfirmationScreen }    from './src/screens/ConfirmationScreen';
+import { HistoryScreen }         from './src/screens/HistoryScreen';
+import { ProfileScreen }         from './src/screens/ProfileScreen';
 
 type VisitorStack =
   | { screen: 'main' }
@@ -48,13 +49,13 @@ async function getOrCreateProfile(user: any): Promise<UserProfile> {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [authFlow,      setAuthFlow]      = useState<AuthFlow>('login');
-  const [profile,       setProfile]       = useState<UserProfile | null>(null);
-  const [authLoading,   setAuthLoading]   = useState(true);
-  const [activeTab,     setActiveTab]     = useState<MainTab>('historico');
-  const [visitorStack,  setVisitorStack]  = useState<VisitorStack>({ screen: 'main' });
-  const [occurrences,   setOccurrences]   = useState<OccurrenceRecord[]>([]);
-  const [historyLoading,setHistoryLoading]= useState(false);
+  const [authFlow,       setAuthFlow]       = useState<AuthFlow>('login');
+  const [profile,        setProfile]        = useState<UserProfile | null>(null);
+  const [authLoading,    setAuthLoading]    = useState(true);
+  const [activeTab,      setActiveTab]      = useState<MainTab>('historico');
+  const [visitorStack,   setVisitorStack]   = useState<VisitorStack>({ screen: 'main' });
+  const [occurrences,    setOccurrences]    = useState<OccurrenceRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // ── Observer de auth ────────────────────────────────────────────────────
   useEffect(() => {
@@ -159,10 +160,15 @@ export default function App() {
           <LoginScreen
             onLogin={handleLogin}
             onRegister={() => setAuthFlow('register')}
+            onForgotPassword={() => setAuthFlow('forgot')}
           />
-        ) : (
+        ) : authFlow === 'register' ? (
           <RegisterScreen
             onRegister={handleRegister}
+            onBack={() => setAuthFlow('login')}
+          />
+        ) : (
+          <ForgotPasswordScreen
             onBack={() => setAuthFlow('login')}
           />
         )}

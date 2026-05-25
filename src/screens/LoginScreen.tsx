@@ -12,8 +12,9 @@ import { useToast } from '../hooks/useToast';
 import { Toast } from '../components/Toast';
 
 interface LoginScreenProps {
-  onLogin:    (profile: UserProfile) => void;
-  onRegister: () => void;
+  onLogin:           (profile: UserProfile) => void;
+  onRegister:        () => void;
+  onForgotPassword:  () => void;
 }
 
 // ── Simula autenticação social ────────────────────────────────────────────
@@ -48,7 +49,7 @@ async function fakeEmailLogin(email: string, _password: string): Promise<UserPro
   };
 }
 
-export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onRegister, onForgotPassword }: LoginScreenProps) {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -192,7 +193,7 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
               </View>
             )}
 
-            <TouchableOpacity style={auth.forgotBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={auth.forgotBtn} onPress={onForgotPassword} activeOpacity={0.7}>
               <Text style={auth.forgotText}>Esqueci minha senha</Text>
             </TouchableOpacity>
 
@@ -226,3 +227,4 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
     </KeyboardAvoidingView>
   );
 }
+
