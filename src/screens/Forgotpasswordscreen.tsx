@@ -221,3 +221,5 @@ export function ForgotPasswordScreen({ onBack }: ForgotPasswordScreenProps) {
     </KeyboardAvoidingView>
   );
 }
+
+// pra rodar
