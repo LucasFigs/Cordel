@@ -5,16 +5,18 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ToastState } from '../types';
-import { C } from '../constants';
 
-interface ToastProps {
-  toast: ToastState;
-}
+// Cores inline — sem import de constants
+const SUCCESS = '#059669';
+const ERROR   = '#E11D48';
+const PRIMARY = '#2563EB';
+
+interface ToastProps { toast: ToastState; }
 
 const CONFIG = {
-  success: { bg: C.success,  icon: 'checkmark-circle' as const, label: 'Sucesso'    },
-  error:   { bg: C.error,    icon: 'alert-circle'     as const, label: 'Erro'        },
-  loading: { bg: C.primary,  icon: null,                         label: 'Carregando' },
+  success: { bg: SUCCESS, icon: 'checkmark-circle' as const },
+  error:   { bg: ERROR,   icon: 'alert-circle'     as const },
+  loading: { bg: PRIMARY, icon: null                        },
 };
 
 export function Toast({ toast }: ToastProps) {
@@ -33,9 +35,9 @@ export function Toast({ toast }: ToastProps) {
         Animated.timing(translateY, { toValue: -20, duration: 200, useNativeDriver: true }),
       ]).start();
     }
-  }, [toast.visible]);
+  }, [toast.visible, opacity, translateY]);
 
-  if (!toast.visible && opacity.__getValue() === 0) return null;
+  if (!toast.visible) return null;
 
   const cfg = CONFIG[toast.type];
 
@@ -65,16 +67,10 @@ const t = StyleSheet.create({
     alignItems: 'center',
   },
   toast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 8,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2, shadowRadius: 10, elevation: 8,
     maxWidth: '100%',
   },
   msg: { fontSize: 14, fontWeight: '600', color: '#fff', flex: 1, lineHeight: 18 },

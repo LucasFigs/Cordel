@@ -1,5 +1,5 @@
 import { StyleSheet, Platform } from 'react-native';
-import { C } from '../constants';
+import { C } from '../colors';
 
 // ── Auth (Login / Register) ──────────────────────────────────────────────
 export const auth = StyleSheet.create({
@@ -73,7 +73,7 @@ export const fs = StyleSheet.create({
   optional:          { color: C.textMuted, fontWeight: '400', letterSpacing: 0, textTransform: 'none', fontSize: 11 },
   helper:            { fontSize: 11, color: C.textMuted, marginTop: 6 },
   inputErr:          { borderColor: C.error, borderWidth: 1.5 },
-  cardErr:           { borderColor: '#FECDD3', backgroundColor: '#FFF1F2' },
+  cardErr:           { borderColor: '#FECDD3', backgroundColor: C.errorLight },
   errorRow:          { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
   errorText:         { fontSize: 12, color: C.error, fontWeight: '500', flex: 1 },
   warnBanner:        { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.warningLight, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 14 },
@@ -122,7 +122,7 @@ export const hx = StyleSheet.create({
   filterTab:        { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.card },
   filterDot:        { width: 7, height: 7, borderRadius: 4 },
   filterText:       { fontSize: 12, fontWeight: '500', color: C.textSub },
-  infoBanner:       { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.primaryLight, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.primary + '20' },
+  infoBanner:       { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.primaryLight, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#BFDBFE' },
   infoText:         { fontSize: 12, color: C.primary, flex: 1 },
   listContent:      { paddingHorizontal: 16, paddingTop: 16 },
   emptyWrap:        { alignItems: 'center', paddingTop: 60, paddingHorizontal: 24 },
@@ -147,7 +147,7 @@ export const cf = StyleSheet.create({
   iconOuter:     { width: 92, height: 92, borderRadius: 46, backgroundColor: C.success, alignItems: 'center', justifyContent: 'center', marginBottom: 20, shadowColor: C.success, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 8, borderWidth: 6, borderColor: C.successLight },
   title:         { fontSize: 26, fontWeight: '800', color: C.text, letterSpacing: -0.3, marginBottom: 8, textAlign: 'center' },
   subtitle:      { fontSize: 14, color: C.textSub, textAlign: 'center', lineHeight: 21, marginBottom: 16, paddingHorizontal: 10 },
-  protocolBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.primaryLight, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 28, borderWidth: 1, borderColor: C.primary + '30' },
+  protocolBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.primaryLight, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 28, borderWidth: 1, borderColor: '#BFDBFE' },
   protocolText:  { fontSize: 12, fontWeight: '700', color: C.primary },
   card:          { width: '100%', backgroundColor: C.card, borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: C.border, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3 },
   cardTitle:     { fontSize: 10, fontWeight: '800', color: C.textMuted, letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 14 },
@@ -169,6 +169,6 @@ export const cf = StyleSheet.create({
   stepLabel:     { fontSize: 13, fontWeight: '600', color: C.textSub },
   primaryBtn:    { width: '100%', backgroundColor: C.primary, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12, shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 14, elevation: 6 },
   primaryBtnText:{ fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.2 },
-  secondaryBtn:  { width: '100%', backgroundColor: C.card, borderRadius: 14, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: C.primary + '50' },
+  secondaryBtn:  { width: '100%', backgroundColor: C.card, borderRadius: 14, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#93C5FD' },
   secondaryBtnText: { fontSize: 15, fontWeight: '700', color: C.primary },
 });
