@@ -13,6 +13,28 @@ interface AdminScreenProps {
 
 const ALL_STATUSES: OccurrenceStatus[] = ['Pendente', 'Em análise', 'Em andamento', 'Resolvido'];
 
+// Helper: parse "DD/MM/YYYY HH:MM" → Date | null
+function parseDateTime(str: string): Date | null {
+  const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!match) return null;
+  const [, d, m, y] = match;
+  return new Date(Number(y), Number(m) - 1, Number(d));
+}
+
+// Helper: parse "DD/MM/YYYY" → Date | null
+function parseDate(str: string): Date | null {
+  const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+  const [, d, m, y] = match;
+  return new Date(Number(y), Number(m) - 1, Number(d));
+}
+
+// Helper: validate date string "DD/MM/YYYY"
+function isValidDateStr(str: string): boolean {
+  if (str.length !== 10) return false;
+  return parseDate(str) !== null;
+}
+
 export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
   const [tab,          setTab]          = useState<'dashboard' | 'lista'>('dashboard');
   const [filterStatus, setFilterStatus] = useState<OccurrenceStatus | 'Todos'>('Todos');
@@ -21,6 +43,62 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
   const [statusModal,  setStatusModal]  = useState<{ id: string; current: OccurrenceStatus; userId: string } | null>(null);
   const [updating,     setUpdating]     = useState(false);
   const { toast, showLoading, showSuccess, showError, hide } = useToast();
+
+  // ── Filtro avançado por data ──────────────────────────────────────────────
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  // campos de edição (input livre)
+  const [dateFromInput, setDateFromInput] = useState('');
+  const [dateToInput,   setDateToInput]   = useState('');
+  const [spaceFiltInput, setSpaceFiltInput] = useState('');
+  // valores aplicados (só ativos após "Aplicar")
+  const [appliedDateFrom,  setAppliedDateFrom]  = useState('');
+  const [appliedDateTo,    setAppliedDateTo]    = useState('');
+  const [appliedSpaceFilt, setAppliedSpaceFilt] = useState('');
+  const [dateFromError,    setDateFromError]    = useState('');
+  const [dateToError,      setDateToError]      = useState('');
+
+  const hasActiveAdvFilter = !!(appliedDateFrom || appliedDateTo || appliedSpaceFilt);
+
+  const applyAdvancedFilters = () => {
+    let ok = true;
+    if (dateFromInput && !isValidDateStr(dateFromInput)) {
+      setDateFromError('Use o formato DD/MM/AAAA');
+      ok = false;
+    } else {
+      setDateFromError('');
+    }
+    if (dateToInput && !isValidDateStr(dateToInput)) {
+      setDateToError('Use o formato DD/MM/AAAA');
+      ok = false;
+    } else {
+      setDateToError('');
+    }
+    if (!ok) return;
+    setAppliedDateFrom(dateFromInput);
+    setAppliedDateTo(dateToInput);
+    setAppliedSpaceFilt(spaceFiltInput);
+    setFilterPanelOpen(false);
+  };
+
+  const clearAdvancedFilters = () => {
+    setDateFromInput('');
+    setDateToInput('');
+    setSpaceFiltInput('');
+    setAppliedDateFrom('');
+    setAppliedDateTo('');
+    setAppliedSpaceFilt('');
+    setDateFromError('');
+    setDateToError('');
+  };
+
+  // format mask helper: auto-insert "/" while typing
+  const applyDateMask = (text: string): string => {
+    const digits = text.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0,2)}/${digits.slice(2)}`;
+    return `${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4)}`;
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   const total     = occurrences.length;
   const pending   = occurrences.filter(o => o.status === 'Pendente').length;
@@ -32,11 +110,32 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
   occurrences.forEach(o => { typeCount[o.type] = (typeCount[o.type] ?? 0) + 1; });
   const maxCount = Math.max(...Object.values(typeCount), 1);
 
-  // RF05 + RF12
+  // RF05 + RF12 + filtro avançado
   const filtered = occurrences
     .filter(o => filterStatus === 'Todos' || o.status === filterStatus)
     .filter(o => !filterPlace  || o.place.name.toLowerCase().includes(filterPlace.toLowerCase()))
-    .filter(o => !searchText   || o.description.toLowerCase().includes(searchText.toLowerCase()) || String(o.protocol).includes(searchText));
+    .filter(o => !searchText   || o.description.toLowerCase().includes(searchText.toLowerCase()) || String(o.protocol).includes(searchText))
+    // filtro avançado: espaço cultural
+    .filter(o => !appliedSpaceFilt || o.place.name.toLowerCase().includes(appliedSpaceFilt.toLowerCase()))
+    // filtro avançado: data inicial
+    .filter(o => {
+      if (!appliedDateFrom) return true;
+      const occDate  = parseDateTime(o.dateTime);
+      const fromDate = parseDate(appliedDateFrom);
+      if (!occDate || !fromDate) return true;
+      return occDate >= fromDate;
+    })
+    // filtro avançado: data final
+    .filter(o => {
+      if (!appliedDateTo) return true;
+      const occDate = parseDateTime(o.dateTime);
+      const toDate  = parseDate(appliedDateTo);
+      if (!occDate || !toDate) return true;
+      // include the entire "to" day
+      const toEnd = new Date(toDate.getTime());
+      toEnd.setHours(23, 59, 59, 999);
+      return occDate <= toEnd;
+    });
 
   // RF09
   const handleChangeStatus = async (newStatus: OccurrenceStatus) => {
@@ -191,7 +290,44 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
                 );
               })}
             </ScrollView>
+
+            {/* ── Botão para abrir o painel de filtro avançado ── */}
+            <TouchableOpacity
+              style={[ad.advFilterBtn, hasActiveAdvFilter && ad.advFilterBtnActive]}
+              onPress={() => setFilterPanelOpen(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="options-outline"
+                size={15}
+                color={hasActiveAdvFilter ? '#2563EB' : '#6B7280'}
+              />
+              <Text style={[ad.advFilterBtnText, hasActiveAdvFilter && { color: '#2563EB', fontWeight: '700' }]}>
+                Filtro avançado
+              </Text>
+              {hasActiveAdvFilter && (
+                <View style={ad.advFilterDot} />
+              )}
+            </TouchableOpacity>
+
+            {/* Resumo dos filtros ativos */}
+            {hasActiveAdvFilter && (
+              <View style={ad.advActiveSummary}>
+                <Ionicons name="funnel" size={12} color="#2563EB" />
+                <Text style={ad.advActiveSummaryText} numberOfLines={1}>
+                  {[
+                    appliedDateFrom  ? `De: ${appliedDateFrom}` : null,
+                    appliedDateTo    ? `Até: ${appliedDateTo}`  : null,
+                    appliedSpaceFilt ? `Espaço: ${appliedSpaceFilt}` : null,
+                  ].filter(Boolean).join('  ·  ')}
+                </Text>
+                <TouchableOpacity onPress={clearAdvancedFilters}>
+                  <Ionicons name="close-circle" size={14} color="#2563EB" />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
+
           <Text style={ad.resultCount}>{filtered.length} resultado(s)</Text>
           <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
             {filtered.length === 0 ? (
@@ -248,6 +384,105 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
           </ScrollView>
         </View>
       )}
+
+      {/* ── Modal: Filtro Avançado ───────────────────────────────────────────── */}
+      <Modal visible={filterPanelOpen} transparent animationType="slide" onRequestClose={() => setFilterPanelOpen(false)}>
+        <View style={ad.modalOverlay}>
+          <View style={ad.modalSheet}>
+            {/* Cabeçalho */}
+            <View style={ad.advModalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={ad.advModalIconWrap}>
+                  <Ionicons name="options-outline" size={16} color="#2563EB" />
+                </View>
+                <View>
+                  <Text style={ad.modalTitle}>Filtro Avançado</Text>
+                  <Text style={ad.advModalSub}>Refine a lista de ocorrências</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={ad.modalClose} onPress={() => setFilterPanelOpen(false)}>
+                <Ionicons name="close" size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
+              {/* Intervalo de datas */}
+              <Text style={ad.advFieldLabel}>
+                <Ionicons name="calendar-outline" size={13} color="#2563EB" />{'  '}Intervalo de datas
+              </Text>
+              <View style={ad.advDateRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={ad.advDateHint}>Data inicial</Text>
+                  <View style={[ad.advInput, dateFromError ? ad.advInputError : {}]}>
+                    <TextInput
+                      style={ad.advInputText}
+                      placeholder="DD/MM/AAAA"
+                      placeholderTextColor="#C4CBD6"
+                      value={dateFromInput}
+                      keyboardType="numeric"
+                      maxLength={10}
+                      onChangeText={t => { setDateFromInput(applyDateMask(t)); setDateFromError(''); }}
+                    />
+                  </View>
+                  {dateFromError ? <Text style={ad.advErrorText}>{dateFromError}</Text> : null}
+                </View>
+                <View style={ad.advDateSep}>
+                  <Text style={{ color: '#A0AAB4', fontSize: 16, fontWeight: '600' }}>→</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={ad.advDateHint}>Data final</Text>
+                  <View style={[ad.advInput, dateToError ? ad.advInputError : {}]}>
+                    <TextInput
+                      style={ad.advInputText}
+                      placeholder="DD/MM/AAAA"
+                      placeholderTextColor="#C4CBD6"
+                      value={dateToInput}
+                      keyboardType="numeric"
+                      maxLength={10}
+                      onChangeText={t => { setDateToInput(applyDateMask(t)); setDateToError(''); }}
+                    />
+                  </View>
+                  {dateToError ? <Text style={ad.advErrorText}>{dateToError}</Text> : null}
+                </View>
+              </View>
+
+              {/* Espaço cultural */}
+              <Text style={[ad.advFieldLabel, { marginTop: 18 }]}>
+                <Ionicons name="business-outline" size={13} color="#2563EB" />{'  '}Espaço cultural
+              </Text>
+              <View style={ad.advInput}>
+                <Ionicons name="search-outline" size={14} color="#A0AAB4" style={{ marginRight: 6 }} />
+                <TextInput
+                  style={[ad.advInputText, { flex: 1 }]}
+                  placeholder="Ex: Teatro A, Museu B…"
+                  placeholderTextColor="#C4CBD6"
+                  value={spaceFiltInput}
+                  onChangeText={setSpaceFiltInput}
+                />
+                {spaceFiltInput.length > 0 && (
+                  <TouchableOpacity onPress={() => setSpaceFiltInput('')}>
+                    <Ionicons name="close-circle" size={16} color="#A0AAB4" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </ScrollView>
+
+            {/* Botões de ação */}
+            <View style={ad.advActionRow}>
+              <TouchableOpacity style={ad.advClearBtn} onPress={clearAdvancedFilters} activeOpacity={0.8}>
+                <Ionicons name="trash-outline" size={15} color="#6B7280" />
+                <Text style={ad.advClearBtnText}>Limpar filtros</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={ad.advApplyBtn} onPress={applyAdvancedFilters} activeOpacity={0.8}>
+                <Ionicons name="checkmark-circle-outline" size={15} color="#fff" />
+                <Text style={ad.advApplyBtnText}>Aplicar filtros</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: Platform.OS === 'ios' ? 16 : 4 }} />
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal RF09 */}
       <Modal visible={!!statusModal} transparent animationType="slide" onRequestClose={() => !updating && setStatusModal(null)}>
@@ -336,4 +571,28 @@ const ad = StyleSheet.create({
   statusOption:   { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, borderWidth: 1.5, borderColor: '#E8ECF2', marginBottom: 8, gap: 12 },
   statusOptionIcon:{ width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statusOptionText:{ flex: 1, fontSize: 15, fontWeight: '600', color: '#111827' },
+
+  // ── Filtro avançado ──────────────────────────────────────────────────────
+  advFilterBtn:      { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, borderWidth: 1.5, borderColor: '#E8ECF2', backgroundColor: '#F7F8FA' },
+  advFilterBtnActive:{ borderColor: '#BFDBFE', backgroundColor: '#EEF3FF' },
+  advFilterBtnText:  { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  advFilterDot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: '#2563EB', marginLeft: 2 },
+  advActiveSummary:  { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EEF3FF', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
+  advActiveSummaryText: { flex: 1, fontSize: 11, color: '#2563EB', fontWeight: '600' },
+  advModalHeader:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  advModalIconWrap:  { width: 36, height: 36, borderRadius: 10, backgroundColor: '#EEF3FF', alignItems: 'center', justifyContent: 'center' },
+  advModalSub:       { fontSize: 11, color: '#A0AAB4', marginTop: 1 },
+  advFieldLabel:     { fontSize: 12, fontWeight: '700', color: '#374151', marginBottom: 8, letterSpacing: 0.2 },
+  advDateRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  advDateSep:        { paddingTop: 22, alignItems: 'center' },
+  advDateHint:       { fontSize: 11, color: '#A0AAB4', fontWeight: '500', marginBottom: 4 },
+  advInput:          { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F8FA', borderRadius: 10, borderWidth: 1.5, borderColor: '#E8ECF2', paddingHorizontal: 10, paddingVertical: 10 },
+  advInputError:     { borderColor: '#EF4444', backgroundColor: '#FEF2F2' },
+  advInputText:      { fontSize: 13, color: '#111827', padding: 0 },
+  advErrorText:      { fontSize: 11, color: '#EF4444', marginTop: 4 },
+  advActionRow:      { flexDirection: 'row', gap: 10, marginTop: 24 },
+  advClearBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5, borderColor: '#E8ECF2', backgroundColor: '#F7F8FA' },
+  advClearBtnText:   { fontSize: 14, fontWeight: '700', color: '#6B7280' },
+  advApplyBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 13, borderRadius: 12, backgroundColor: '#2563EB' },
+  advApplyBtnText:   { fontSize: 14, fontWeight: '700', color: '#fff' },
 });
