@@ -1,9 +1,42 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { OccurrenceData } from '../types';
 import { OCCURRENCE_TYPES, SEVERITIES, C } from '../constants';
-import { cf } from '../styles';
+
+const cf = StyleSheet.create({
+  root:         { flex: 1, backgroundColor: C.bg },
+  topBand:      { height: 4, backgroundColor: C.primary },
+  scroll:       { flex: 1 },
+  content:      { padding: 20, paddingTop: 32, alignItems: 'center' },
+  iconOuter:    { width: 80, height: 80, borderRadius: 40, backgroundColor: C.success, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  title:        { fontSize: 22, fontWeight: '800', color: C.text, textAlign: 'center', marginBottom: 8 },
+  subtitle:     { fontSize: 14, color: C.textSub, textAlign: 'center', lineHeight: 21, marginBottom: 20 },
+  protocolBadge:{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.primaryLight, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 24 },
+  protocolText: { fontSize: 13, fontWeight: '700', color: C.primary },
+  card:         { width: '100%', backgroundColor: C.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: C.border, marginBottom: 16 },
+  cardTitle:    { fontSize: 11, fontWeight: '800', color: C.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 14 },
+  row:          { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  rowIcon:      { width: 34, height: 34, borderRadius: 10, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  rowLabel:     { fontSize: 11, color: C.textMuted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  rowValue:     { fontSize: 14, fontWeight: '700', color: C.text },
+  rowSub:       { fontSize: 12, color: C.textSub, marginTop: 1 },
+  divider:      { height: 1, backgroundColor: C.border, marginVertical: 12 },
+  descText:     { fontSize: 13, color: C.textSub, lineHeight: 20, marginTop: 4 },
+  sevTag:       { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
+  sevDot:       { width: 6, height: 6, borderRadius: 3 },
+  sevTagText:   { fontSize: 11, fontWeight: '700' },
+  stepRow:      { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  stepDot:      { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: C.border, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center' },
+  stepDotDone:  { backgroundColor: C.success, borderColor: C.success },
+  stepLine:     { position: 'absolute', left: 11, top: 30, width: 2, height: 20, backgroundColor: C.border },
+  stepLineDone: { backgroundColor: C.success },
+  stepLabel:    { fontSize: 14, fontWeight: '500', color: C.textSub },
+  primaryBtn:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', backgroundColor: C.primary, borderRadius: 14, paddingVertical: 15, marginBottom: 10 },
+  primaryBtnText:  { fontSize: 15, fontWeight: '700', color: '#fff' },
+  secondaryBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', borderRadius: 14, paddingVertical: 14, borderWidth: 1.5, borderColor: C.primary },
+  secondaryBtnText:{ fontSize: 15, fontWeight: '700', color: C.primary },
+});
 
 interface ConfirmationScreenProps {
   data:              OccurrenceData;

@@ -63,7 +63,7 @@ export function FormScreen({ userId, onSubmit }: FormScreenProps) {
       type:        occType!,
       severity:    severity ?? 'baixa',
       description: description.trim(),
-      rating:      rating > 0 ? rating : undefined,
+      rating:      rating > 0 ? rating : null,
     };
 
     setLoading(true);
@@ -173,23 +173,6 @@ export function FormScreen({ userId, onSubmit }: FormScreenProps) {
                 </TouchableOpacity>
               );
             })}
-          </View>
-
-          {/* Nota de avaliação (estrelas) */}
-          <Text style={[f.label, { marginTop: 18 }]}>
-            Nota <Text style={f.optional}>(opcional)</Text>
-          </Text>
-          <View style={f.starCard}>
-            <View style={f.starsRow}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <TouchableOpacity key={i} onPress={() => setRating(i)} activeOpacity={0.7} style={{ padding: 4 }}>
-                  <Ionicons name={i <= rating ? 'star' : 'star-outline'} size={38} color={i <= rating ? '#F59E0B' : TEXT_MUTED} />
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={[f.starLabel, { color: rating > 0 ? '#F59E0B' : TEXT_MUTED }]}>
-              {rating > 0 ? STAR_LABELS[rating] : 'Toque para avaliar'}
-            </Text>
           </View>
 
           {/* Descrição */}
