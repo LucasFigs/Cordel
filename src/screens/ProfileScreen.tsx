@@ -88,10 +88,6 @@ export function ProfileScreen({ profile, occurrences, onSave, onLogout }: Profil
       {/* Header */}
       <View style={p.header}>
         <Text style={p.headerTitle}>Perfil</Text>
-        <TouchableOpacity style={p.logoutBtn} onPress={() => setLogoutModal(true)} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={18} color={ERROR} />
-          <Text style={p.logoutText}>Sair</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">

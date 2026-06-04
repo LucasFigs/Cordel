@@ -9,16 +9,28 @@ import { Toast } from '../components/Toast';
 interface AdminScreenProps {
   occurrences:    OccurrenceRecord[];
   onUpdateStatus: (id: string, status: OccurrenceStatus, targetUserId: string) => Promise<void>;
+  onLogout:       () => void;
 }
 
 const ALL_STATUSES: OccurrenceStatus[] = ['Pendente', 'Em análise', 'Em andamento', 'Resolvido'];
 
-// Helper: parse "DD/MM/YYYY HH:MM" → Date | null
+const MONTH_MAP: Record<string, number> = {
+  jan:0, fev:1, mar:2, abr:3, mai:4, jun:5,
+  jul:6, ago:7, set:8, out:9, nov:10, dez:11,
+};
+
+// Helper: parse "25 mai 2026  ·  19:46" → Date | null
 function parseDateTime(str: string): Date | null {
-  const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  // format: "DD mon YYYY  ·  HH:MM"
+  const match = str.match(/^(\d{1,2})\s+([a-z]{3})\s+(\d{4})/i);
   if (!match) return null;
-  const [, d, m, y] = match;
-  return new Date(Number(y), Number(m) - 1, Number(d));
+  const day   = Number(match[1]);
+  const month = MONTH_MAP[match[2].toLowerCase()];
+  const year  = Number(match[3]);
+  if (month === undefined) return null;
+  const date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
+  return date;
 }
 
 // Helper: parse "DD/MM/YYYY" → Date | null
@@ -26,7 +38,10 @@ function parseDate(str: string): Date | null {
   const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!match) return null;
   const [, d, m, y] = match;
-  return new Date(Number(y), Number(m) - 1, Number(d));
+  const day = Number(d), month = Number(m) - 1, year = Number(y);
+  const date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
+  return date;
 }
 
 // Helper: validate date string "DD/MM/YYYY"
@@ -35,7 +50,7 @@ function isValidDateStr(str: string): boolean {
   return parseDate(str) !== null;
 }
 
-export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
+export function AdminScreen({ occurrences, onUpdateStatus, onLogout }: AdminScreenProps) {
   const [tab,          setTab]          = useState<'dashboard' | 'lista'>('dashboard');
   const [filterStatus, setFilterStatus] = useState<OccurrenceStatus | 'Todos'>('Todos');
   const [filterPlace,  setFilterPlace]  = useState('');
@@ -61,18 +76,45 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
 
   const applyAdvancedFilters = () => {
     let ok = true;
-    if (dateFromInput && !isValidDateStr(dateFromInput)) {
-      setDateFromError('Use o formato DD/MM/AAAA');
-      ok = false;
+    const today = new Date(); today.setHours(23, 59, 59, 999);
+
+    if (dateFromInput) {
+      if (!isValidDateStr(dateFromInput)) {
+        setDateFromError('Data inválida. Use DD/MM/AAAA');
+        ok = false;
+      } else if ((parseDate(dateFromInput) as Date) > today) {
+        setDateFromError('Data inicial não pode ser futura');
+        ok = false;
+      } else {
+        setDateFromError('');
+      }
     } else {
       setDateFromError('');
     }
-    if (dateToInput && !isValidDateStr(dateToInput)) {
-      setDateToError('Use o formato DD/MM/AAAA');
-      ok = false;
+
+    if (dateToInput) {
+      if (!isValidDateStr(dateToInput)) {
+        setDateToError('Data inválida. Use DD/MM/AAAA');
+        ok = false;
+      } else if ((parseDate(dateToInput) as Date) > today) {
+        setDateToError('Data final não pode ser futura');
+        ok = false;
+      } else {
+        setDateToError('');
+      }
     } else {
       setDateToError('');
     }
+
+    if (ok && dateFromInput && dateToInput) {
+      const from = parseDate(dateFromInput) as Date;
+      const to   = parseDate(dateToInput)   as Date;
+      if (from > to) {
+        setDateFromError('Data inicial não pode ser maior que a final');
+        ok = false;
+      }
+    }
+
     if (!ok) return;
     setAppliedDateFrom(dateFromInput);
     setAppliedDateTo(dateToInput);
@@ -111,18 +153,19 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
   const maxCount = Math.max(...Object.values(typeCount), 1);
 
   // RF05 + RF12 + filtro avançado
+  const normalize = (s: string) => s.normalize('NFC').toLowerCase().trim();
   const filtered = occurrences
-    .filter(o => filterStatus === 'Todos' || o.status === filterStatus)
-    .filter(o => !filterPlace  || o.place.name.toLowerCase().includes(filterPlace.toLowerCase()))
-    .filter(o => !searchText   || o.description.toLowerCase().includes(searchText.toLowerCase()) || String(o.protocol).includes(searchText))
+    .filter(o => filterStatus === 'Todos' || normalize(o.status) === normalize(filterStatus))
+    .filter(o => !filterPlace  || normalize(o.place.name).includes(normalize(filterPlace)))
+    .filter(o => !searchText   || normalize(o.description).includes(normalize(searchText)) || String(o.protocol).includes(searchText))
     // filtro avançado: espaço cultural
-    .filter(o => !appliedSpaceFilt || o.place.name.toLowerCase().includes(appliedSpaceFilt.toLowerCase()))
+    .filter(o => !appliedSpaceFilt || normalize(o.place.name).includes(normalize(appliedSpaceFilt)))
     // filtro avançado: data inicial
     .filter(o => {
       if (!appliedDateFrom) return true;
       const occDate  = parseDateTime(o.dateTime);
       const fromDate = parseDate(appliedDateFrom);
-      if (!occDate || !fromDate) return true;
+      if (!occDate || !fromDate) return false;
       return occDate >= fromDate;
     })
     // filtro avançado: data final
@@ -130,7 +173,7 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
       if (!appliedDateTo) return true;
       const occDate = parseDateTime(o.dateTime);
       const toDate  = parseDate(appliedDateTo);
-      if (!occDate || !toDate) return true;
+      if (!occDate || !toDate) return false;
       // include the entire "to" day
       const toEnd = new Date(toDate.getTime());
       toEnd.setHours(23, 59, 59, 999);
@@ -143,7 +186,13 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
     setUpdating(true);
     showLoading('Atualizando status…');
     try {
-      await onUpdateStatus(statusModal.id, newStatus, statusModal.userId);
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 15000)
+      );
+      await Promise.race([
+        onUpdateStatus(statusModal.id, newStatus, statusModal.userId),
+        timeout,
+      ]);
       hide();
       showSuccess(`Status atualizado para "${newStatus}"!`);
       setStatusModal(null);
@@ -159,9 +208,11 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
           <Text style={ad.headerTitle}>Painel Admin</Text>
           <Text style={ad.headerSub}>Gestão de Ocorrências</Text>
         </View>
-        <View style={ad.adminBadge}>
-          <Ionicons name="shield-checkmark-outline" size={13} color="#7C3AED" />
-          <Text style={ad.adminBadgeText}>Admin</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={ad.adminBadge}>
+            <Ionicons name="shield-checkmark-outline" size={13} color="#7C3AED" />
+            <Text style={ad.adminBadgeText}>Admin</Text>
+          </View>
         </View>
       </View>
 
@@ -213,6 +264,21 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
             {total === 0 && <Text style={{ fontSize: 13, color: '#A0AAB4', textAlign: 'center', paddingVertical: 8 }}>Nenhuma ocorrência ainda.</Text>}
           </View>
 
+          <Text style={ad.sectionTitle}>Por Status</Text>
+          <View style={[ad.chartCard, { flexDirection: 'row', flexWrap: 'wrap', gap: 10 }]}>
+            {ALL_STATUSES.map(st => {
+              const cfg = STATUS_CONFIG[st];
+              const cnt = occurrences.filter(o => o.status === st).length;
+              return (
+                <View key={st} style={{ flex: 1, minWidth: '40%', backgroundColor: cfg.bg, borderRadius: 12, padding: 12, alignItems: 'center' }}>
+                  <Ionicons name={cfg.icon} size={18} color={cfg.color} />
+                  <Text style={{ fontSize: 20, fontWeight: '800', color: cfg.color, marginTop: 4 }}>{cnt}</Text>
+                  <Text style={{ fontSize: 11, color: cfg.color, fontWeight: '600', textAlign: 'center' }}>{st}</Text>
+                </View>
+              );
+            })}
+          </View>
+
           <Text style={ad.sectionTitle}>Avaliação dos Visitantes</Text>
           <View style={ad.chartCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
@@ -242,21 +308,6 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
                 })}
               </View>
             )}
-          </View>
-
-          <Text style={ad.sectionTitle}>Por Status</Text>
-          <View style={[ad.chartCard, { flexDirection: 'row', flexWrap: 'wrap', gap: 10 }]}>
-            {ALL_STATUSES.map(st => {
-              const cfg = STATUS_CONFIG[st];
-              const cnt = occurrences.filter(o => o.status === st).length;
-              return (
-                <View key={st} style={{ flex: 1, minWidth: '40%', backgroundColor: cfg.bg, borderRadius: 12, padding: 12, alignItems: 'center' }}>
-                  <Ionicons name={cfg.icon} size={18} color={cfg.color} />
-                  <Text style={{ fontSize: 20, fontWeight: '800', color: cfg.color, marginTop: 4 }}>{cnt}</Text>
-                  <Text style={{ fontSize: 11, color: cfg.color, fontWeight: '600', textAlign: 'center' }}>{st}</Text>
-                </View>
-              );
-            })}
           </View>
         </ScrollView>
       )}
@@ -517,6 +568,14 @@ export function AdminScreen({ occurrences, onUpdateStatus }: AdminScreenProps) {
           </View>
         </View>
       </Modal>
+
+      {/* Botão de sair */}
+      <View style={ad.logoutBarWrap}>
+        <TouchableOpacity style={ad.logoutBarBtn} onPress={onLogout} activeOpacity={0.85}>
+          <Ionicons name="log-out-outline" size={17} color="#EF4444" />
+          <Text style={ad.logoutBarText}>Sair da conta</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -528,6 +587,10 @@ const ad = StyleSheet.create({
   headerSub:      { fontSize: 12, color: '#A0AAB4', marginTop: 2 },
   adminBadge:     { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F3F0FF', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   adminBadgeText: { fontSize: 11, fontWeight: '700', color: '#7C3AED' },
+  logoutBtn:      { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' },
+  logoutBarWrap:  { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E8ECF2' },
+  logoutBarBtn:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5, borderColor: '#FECDD3', backgroundColor: '#FFF1F2' },
+  logoutBarText:  { fontSize: 14, fontWeight: '700', color: '#EF4444' },
   tabRow:         { flexDirection: 'row', gap: 8, padding: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E8ECF2' },
   tabBtn:         { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: '#F7F8FA', borderWidth: 1, borderColor: '#E8ECF2' },
   tabBtnActive:   { backgroundColor: '#2563EB', borderColor: '#2563EB' },

@@ -1,174 +1,41 @@
-import { StyleSheet, Platform } from 'react-native';
-import { C } from '../colors';
+export type OccurrenceType =
+  | 'estrutura' | 'atendimento' | 'acessibilidade' | 'limpeza' | 'outro';
+export type Severity         = 'baixa' | 'media' | 'alta';
+export type OccurrenceStatus = 'Pendente' | 'Em análise' | 'Em andamento' | 'Resolvido';
 
-// ── Auth (Login / Register) ──────────────────────────────────────────────
-export const auth = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: C.bg },
-  topBand:     { position: 'absolute', top: 0, left: 0, right: 0, height: 280, backgroundColor: C.primary, borderBottomLeftRadius: 48, borderBottomRightRadius: 48, opacity: 0.07 },
-  scroll:      { flexGrow: 1, paddingTop: Platform.OS === 'android' ? 60 : 76, paddingHorizontal: 24, paddingBottom: 40, alignItems: 'center' },
-  brandWrap:   { alignItems: 'center', marginBottom: 32 },
-  logoCircle:  { width: 86, height: 86, borderRadius: 43, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: C.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 20, elevation: 10 },
-  appName:     { fontSize: 34, fontWeight: '800', color: C.text, letterSpacing: -0.5 },
-  appSlug:     { fontSize: 14, color: C.textSub, marginTop: 5, fontStyle: 'italic' },
-  card:        { width: '100%', backgroundColor: C.card, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: C.border, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.07, shadowRadius: 16, elevation: 4, marginBottom: 24 },
-  cardTitle:   { fontSize: 22, fontWeight: '800', color: C.text, marginBottom: 4 },
-  cardSub:     { fontSize: 13, color: C.textSub, marginBottom: 24 },
-  label:       { fontSize: 11, fontWeight: '700', color: C.textMuted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
-  req:         { color: C.error },
-  inputWrap:   { flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg, borderRadius: 12, borderWidth: 1.5, borderColor: C.border, paddingHorizontal: 14, paddingVertical: Platform.OS === 'ios' ? 14 : 11 },
-  inputErr:    { borderColor: C.error },
-  inputIcon:   { marginRight: 10 },
-  input:       { flex: 1, fontSize: 14, color: C.text, padding: 0 },
-  eyeBtn:      { padding: 4 },
-  errorRow:    { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
-  errorText:   { fontSize: 12, color: C.error, fontWeight: '500' },
-  forgotBtn:   { alignSelf: 'flex-end', marginTop: 12, marginBottom: 22 },
-  forgotText:  { fontSize: 13, fontWeight: '600', color: C.primary },
-  submitBtn:   { backgroundColor: C.primary, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 6 },
-  submitBtnDisabled: { backgroundColor: '#F3F4F6', shadowOpacity: 0, elevation: 0, borderWidth: 1, borderColor: C.border },
-  submitText:  { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
-  dividerRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: C.border },
-  dividerText: { fontSize: 12, color: C.textMuted, fontWeight: '600' },
-  socialRow:   { flexDirection: 'row', gap: 12, marginBottom: 8 },
-  socialBtn:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.card },
-  socialText:  { fontSize: 14, fontWeight: '700', color: C.text },
-  bottomRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  bottomText:  { fontSize: 14, color: C.textSub },
-  bottomLink:  { fontSize: 14, fontWeight: '700', color: C.primary },
-  version:     { fontSize: 11, color: C.textMuted },
-  row2:        { flexDirection: 'row', gap: 10 },
-  warnBanner:  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.warningLight, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 14 },
-  warnText:    { fontSize: 13, color: '#92400E', fontWeight: '500', flex: 1 },
-  strengthWrap:  { backgroundColor: C.bg, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: C.border, marginBottom: 14 },
-  strengthBar:   { flex: 1, height: 4, borderRadius: 2 },
-  strengthLabel: { fontSize: 12, fontWeight: '700', marginLeft: 6 },
-  successRoot:  { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  successIcon:  { width: 92, height: 92, borderRadius: 46, backgroundColor: C.success, alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderWidth: 6, borderColor: C.successLight, shadowColor: C.success, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8 },
-  successTitle: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 12, textAlign: 'center' },
-  successSub:   { fontSize: 15, color: C.textSub, textAlign: 'center', lineHeight: 23 },
-  header:       { paddingTop: Platform.OS === 'android' ? 44 : 58, paddingBottom: 14, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent' },
-  backBtn:      { width: 36, height: 36, borderRadius: 10, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
-  headerTitle:  { fontSize: 17, fontWeight: '700', color: C.text },
-  headerBadge:  { backgroundColor: C.primaryLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  headerBadgeText: { fontSize: 11, fontWeight: '700', color: C.primary },
-  miniLogo:       { alignItems: 'center', marginBottom: 20, marginTop: 4 },
-  miniLogoCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  miniLogoText:   { fontSize: 20, fontWeight: '800', color: C.text },
-  miniLogoSlug:   { fontSize: 12, color: C.textSub, fontStyle: 'italic', marginTop: 2 },
-});
+export type Place = {
+  id: string; name: string; address: string;
+  count: string; icon: string; color: string;
+};
 
-// ── FormScreen ───────────────────────────────────────────────────────────
-export const fs = StyleSheet.create({
-  root:              { flex: 1, backgroundColor: C.bg },
-  header:            { paddingTop: Platform.OS === 'android' ? 42 : 56, paddingBottom: 14, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  headerTitle:       { fontSize: 17, fontWeight: '700', color: C.text },
-  headerBadge:       { backgroundColor: C.primaryLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  headerBadgeText:   { fontSize: 11, fontWeight: '700', color: C.primary },
-  scroll:            { flex: 1 },
-  scrollContent:     { paddingHorizontal: 18, paddingTop: 20 },
-  section:           { marginBottom: 22 },
-  sectionLabel:      { fontSize: 11, fontWeight: '700', color: C.textMuted, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10 },
-  req:               { color: C.error, fontWeight: '700' },
-  optional:          { color: C.textMuted, fontWeight: '400', letterSpacing: 0, textTransform: 'none', fontSize: 11 },
-  helper:            { fontSize: 11, color: C.textMuted, marginTop: 6 },
-  inputErr:          { borderColor: C.error, borderWidth: 1.5 },
-  cardErr:           { borderColor: '#FECDD3', backgroundColor: C.errorLight },
-  errorRow:          { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
-  errorText:         { fontSize: 12, color: C.error, fontWeight: '500', flex: 1 },
-  warnBanner:        { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.warningLight, borderWidth: 1, borderColor: '#FDE68A', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 14 },
-  warnText:          { fontSize: 13, color: '#92400E', fontWeight: '500', flex: 1 },
-  placeCard:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 16, padding: 14, borderWidth: 1.5, borderColor: C.border },
-  placeIconWrap:     { width: 50, height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  placeInfo:         { flex: 1 },
-  placeName:         { fontSize: 15, fontWeight: '700', color: C.text },
-  placeAddress:      { fontSize: 12, color: C.textSub, marginTop: 2 },
-  placeCount:        { fontSize: 11, fontWeight: '600', marginTop: 4 },
-  placeChevron:      { width: 30, height: 30, borderRadius: 8, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  dateBox:           { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderRadius: 14, borderWidth: 1.5, borderColor: C.border, paddingHorizontal: 14, paddingVertical: 13, gap: 10 },
-  dateIconWrap:      { width: 32, height: 32, borderRadius: 8, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  dateText:          { flex: 1, color: C.text, fontSize: 14, fontWeight: '500' },
-  autoBadge:         { backgroundColor: '#F3F4F6', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
-  autoBadgeText:     { fontSize: 10, color: C.textMuted, fontWeight: '600' },
-  categoriesGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  categoryCard:      { width: '47%', backgroundColor: C.card, borderRadius: 14, borderWidth: 1.5, borderColor: C.border, padding: 14, alignItems: 'flex-start', position: 'relative' },
-  categoryIconCircle:{ width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  categoryLabel:     { fontSize: 13, fontWeight: '600', color: C.textSub },
-  categoryCheck:     { position: 'absolute', top: 10, right: 10, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  severityRow:       { flexDirection: 'row', gap: 10 },
-  severityPill:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.card },
-  severityDot:       { width: 7, height: 7, borderRadius: 4 },
-  severityLabel:     { fontSize: 13, fontWeight: '600', color: C.textSub },
-  textAreaWrap:      { backgroundColor: C.card, borderRadius: 14, borderWidth: 1.5, borderColor: C.border, padding: 14 },
-  textArea:          { color: C.text, fontSize: 14, minHeight: 100, lineHeight: 22 },
-  charRow:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
-  charCount:         { fontSize: 11, color: C.textMuted },
-  charHint:          { fontSize: 10, color: C.error },
-  submitBtn:         { backgroundColor: C.primary, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 4, shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 14, elevation: 6 },
-  submitBtnDisabled: { backgroundColor: '#F3F4F6', shadowOpacity: 0, elevation: 0, borderWidth: 1, borderColor: C.border },
-  submitText:        { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
-});
+export type OccurrenceData = {
+  place: Place; dateTime: string;
+  type: OccurrenceType; severity: Severity;
+  description: string; rating?: number; userId: string;
+};
 
-// ── HistoryScreen ────────────────────────────────────────────────────────
-export const hx = StyleSheet.create({
-  root:             { flex: 1, backgroundColor: C.bg },
-  header:           { paddingTop: Platform.OS === 'android' ? 42 : 56, paddingBottom: 14, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border, gap: 12 },
-  headerTitle:      { fontSize: 17, fontWeight: '800', color: C.text },
-  headerSub:        { fontSize: 12, color: C.textMuted, marginTop: 1 },
-  pendingBadge:     { backgroundColor: C.warningLight, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#FDE68A' },
-  pendingBadgeText: { fontSize: 11, fontWeight: '700', color: '#B45309' },
-  filterScroll:     { flexGrow: 0, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  filterRow:        { paddingHorizontal: 16, paddingVertical: 10, gap: 8, flexDirection: 'row' },
-  filterTab:        { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.card },
-  filterDot:        { width: 7, height: 7, borderRadius: 4 },
-  filterText:       { fontSize: 12, fontWeight: '500', color: C.textSub },
-  infoBanner:       { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.primaryLight, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#BFDBFE' },
-  infoText:         { fontSize: 12, color: C.primary, flex: 1 },
-  listContent:      { paddingHorizontal: 16, paddingTop: 16 },
-  emptyWrap:        { alignItems: 'center', paddingTop: 60, paddingHorizontal: 24 },
-  emptyIcon:        { width: 80, height: 80, borderRadius: 40, backgroundColor: C.border, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  emptyTitle:       { fontSize: 18, fontWeight: '800', color: C.text, marginBottom: 8 },
-  emptySub:         { fontSize: 14, color: C.textSub, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
-  emptyBtn:         { flexDirection: 'row', alignItems: 'center', backgroundColor: C.primary, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 13 },
-  emptyBtnText:     { fontSize: 14, fontWeight: '700', color: '#fff' },
-  emptyFilter:      { alignItems: 'center', paddingTop: 50, gap: 12 },
-  emptyFilterText:  { fontSize: 14, color: C.textSub, textAlign: 'center' },
-  fab:              { position: 'absolute', right: 18, bottom: 24, width: 52, height: 52, borderRadius: 26, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.32, shadowRadius: 12, elevation: 8 },
-  errorBanner:      { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.errorLight, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#FECDD3' },
-  errorBannerText:  { fontSize: 12, color: C.error, flex: 1 },
-});
+export type OccurrenceRecord = OccurrenceData & {
+  id: string; protocol: number; status: OccurrenceStatus;
+};
 
-// ── ConfirmationScreen ───────────────────────────────────────────────────
-export const cf = StyleSheet.create({
-  root:          { flex: 1, backgroundColor: C.bg },
-  topBand:       { position: 'absolute', top: 0, left: 0, right: 0, height: 200, backgroundColor: C.primary, opacity: 0.06, borderBottomLeftRadius: 40, borderBottomRightRadius: 40 },
-  scroll:        { flex: 1 },
-  content:       { paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 64 : 78, alignItems: 'center' },
-  iconOuter:     { width: 92, height: 92, borderRadius: 46, backgroundColor: C.success, alignItems: 'center', justifyContent: 'center', marginBottom: 20, shadowColor: C.success, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 8, borderWidth: 6, borderColor: C.successLight },
-  title:         { fontSize: 26, fontWeight: '800', color: C.text, letterSpacing: -0.3, marginBottom: 8, textAlign: 'center' },
-  subtitle:      { fontSize: 14, color: C.textSub, textAlign: 'center', lineHeight: 21, marginBottom: 16, paddingHorizontal: 10 },
-  protocolBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.primaryLight, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, marginBottom: 28, borderWidth: 1, borderColor: '#BFDBFE' },
-  protocolText:  { fontSize: 12, fontWeight: '700', color: C.primary },
-  card:          { width: '100%', backgroundColor: C.card, borderRadius: 20, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: C.border, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 3 },
-  cardTitle:     { fontSize: 10, fontWeight: '800', color: C.textMuted, letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 14 },
-  row:           { flexDirection: 'row', alignItems: 'flex-start' },
-  rowIcon:       { width: 32, height: 32, borderRadius: 8, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center', marginRight: 12, marginTop: 1 },
-  rowLabel:      { fontSize: 10, fontWeight: '700', color: C.textMuted, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 3 },
-  rowValue:      { fontSize: 14, fontWeight: '700', color: C.text },
-  rowSub:        { fontSize: 12, color: C.textSub, marginTop: 2 },
-  divider:       { height: 1, backgroundColor: C.border, marginVertical: 12 },
-  descText:      { fontSize: 14, color: C.textSub, lineHeight: 20, marginTop: 4 },
-  sevTag:        { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, marginLeft: 8 },
-  sevDot:        { width: 7, height: 7, borderRadius: 4 },
-  sevTagText:    { fontSize: 12, fontWeight: '700' },
-  stepRow:       { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  stepDot:       { width: 28, height: 28, borderRadius: 14, backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: C.border, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  stepDotDone:   { backgroundColor: C.success, borderColor: C.success },
-  stepLine:      { position: 'absolute', left: 13, top: 28, width: 2, height: 10, backgroundColor: C.border },
-  stepLineDone:  { backgroundColor: C.success },
-  stepLabel:     { fontSize: 13, fontWeight: '600', color: C.textSub },
-  primaryBtn:    { width: '100%', backgroundColor: C.primary, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12, shadowColor: C.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 14, elevation: 6 },
-  primaryBtnText:{ fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.2 },
-  secondaryBtn:  { width: '100%', backgroundColor: C.card, borderRadius: 14, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#93C5FD' },
-  secondaryBtnText: { fontSize: 15, fontWeight: '700', color: C.primary },
-});
+export type Notification = {
+  id: string; userId: string; occurrenceId: string;
+  protocol: number; message: string; dateTime: string;
+  read: boolean; newStatus: OccurrenceStatus;
+};
+
+export type UserRole     = 'visitante' | 'admin';
+export type AuthProvider = 'email' | 'google' | 'facebook';
+
+export type UserProfile = {
+  id: string; firstName: string; lastName: string;
+  email: string; role: UserRole; initials: string;
+  provider: AuthProvider; photoURL?: string;
+  bio?: string; address?: string; phone?: string;
+};
+
+export type ToastType  = 'success' | 'error' | 'loading';
+export type ToastState = { visible: boolean; type: ToastType; message: string };
+
+export type AuthFlow = 'login' | 'register';
+export type MainTab  = 'registrar' | 'historico' | 'avaliar' | 'alertas' | 'perfil';

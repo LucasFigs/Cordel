@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StatusBar } from 'react-native';
 import { auth, db } from './src/firebase/config';
+import { ForgotPasswordScreen } from './src/screens/Forgotpasswordscreen';
 import {
   OccurrenceData, OccurrenceRecord, OccurrenceStatus,
   UserProfile, Notification, AuthFlow, MainTab,
@@ -41,7 +42,6 @@ async function getOrCreateProfile(user: any): Promise<UserProfile> {
 export default function App() {
   const [authFlow,       setAuthFlow]       = useState<AuthFlow>('login');
   const [profile,        setProfile]        = useState<UserProfile | null>(null);
-  // ✅ Começa false — app mostra Login imediatamente enquanto Firebase verifica
   const [authLoading,    setAuthLoading]    = useState(false);
   const [activeTab,      setActiveTab]      = useState<MainTab>('historico');
   const [visitorStack,   setVisitorStack]   = useState<VisitorStack>({ screen: 'main' });
@@ -52,29 +52,57 @@ export default function App() {
   const unreadCount = notifications.filter(n => !n.read && n.userId === profile?.id).length;
   const isAdmin     = profile?.role === 'admin';
 
-  // ── Observer Firebase Auth ──────────────────────────────────────────────
+  const subscribeNotifications = (userId: string) => {
+    return db
+      .collection('notifications')
+      .where('userId', '==', userId)
+      .onSnapshot((snap: any) => {
+        const notifs = snap.docs
+          .map((doc: any) => ({ id: doc.id, ...doc.data() } as Notification))
+          .sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+        setNotifications(notifs);
+      }, (e: any) => console.warn('Erro listener notificações:', e));
+  };
+
+  const fetchNotifications = async (userId: string) => {
+    try {
+      const snap = await db
+        .collection('notifications')
+        .where('userId', '==', userId)
+        .get();
+      const notifs = snap.docs
+        .map((doc: any) => ({ id: doc.id, ...doc.data() } as Notification))
+        .sort((a: any, b: any) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      setNotifications(notifs);
+    } catch (e) { console.warn('Erro ao buscar notificações:', e); }
+  };
+
   useEffect(() => {
+    let unsubNotif: (() => void) | null = null;
+
     const unsubscribe = auth.onAuthStateChanged(async (user: any) => {
       if (user) {
         const prof = await getOrCreateProfile(user);
         setProfile(prof);
         if (prof.role === 'admin') loadAllOccurrences();
-        else loadOccurrences(prof.id);
+        else {
+          loadOccurrences(prof.id);
+          unsubNotif = subscribeNotifications(prof.id);
+          fetchNotifications(prof.id);
+        }
       } else {
         setProfile(null);
         setOccurrences([]);
         setNotifications([]);
+        if (unsubNotif) { unsubNotif(); unsubNotif = null; }
       }
       setAuthLoading(false);
     });
 
-    // Timeout de segurança — se Firebase não responder em 3s mostra Login
     const timeout = setTimeout(() => setAuthLoading(false), 3000);
-
-    return () => { unsubscribe(); clearTimeout(timeout); };
+    return () => { unsubscribe(); clearTimeout(timeout); if (unsubNotif) unsubNotif(); };
   }, []);
 
-  // ── Carrega ocorrências ─────────────────────────────────────────────────
   const loadOccurrences = async (userId: string) => {
     setHistoryLoading(true);
     try {
@@ -95,6 +123,20 @@ export default function App() {
     finally { setHistoryLoading(false); }
   };
 
+  const loadNotifications = async (userId: string) => {
+    try {
+      const snap = await db
+        .collection('notifications')
+        .where('userId', '==', userId)
+        .get();
+      const notifs = snap.docs
+        .map((doc: any) => ({ id: doc.id, ...doc.data() } as Notification))
+        .sort((a: any, b: any) => b.createdAt - a.createdAt);
+      setNotifications(notifs);
+    } catch (e) { console.warn('Erro ao carregar notificações:', e); }
+  };
+
+
   const loadAllOccurrences = async () => {
     setHistoryLoading(true);
     try {
@@ -111,12 +153,12 @@ export default function App() {
     finally { setHistoryLoading(false); }
   };
 
-  // ── Auth handlers ───────────────────────────────────────────────────────
   const handleLogin = (p: UserProfile) => {
     setProfile(p);
     setActiveTab('historico');
     if (p.role === 'admin') loadAllOccurrences();
     else loadOccurrences(p.id);
+    // notificações já são carregadas pelo listener no onAuthStateChanged
   };
 
   const handleRegister = (p: UserProfile) => {
@@ -138,7 +180,6 @@ export default function App() {
     await db.collection('users').doc(updated.id).set(updated, { merge: true });
   };
 
-  // ── Ocorrências ─────────────────────────────────────────────────────────
   const handleFormSubmit = async (data: OccurrenceData): Promise<void> => {
     const protocol = Math.floor(100000 + Math.random() * 900000);
     const docRef   = await db.collection('occurrences').add({
@@ -150,7 +191,6 @@ export default function App() {
     setActiveTab('registrar');
   };
 
-  // RF02 — Avaliação
   const handleRatingSubmit = async (data: OccurrenceData): Promise<void> => {
     const protocol = Math.floor(100000 + Math.random() * 900000);
     const docRef   = await db.collection('occurrences').add({
@@ -165,13 +205,11 @@ export default function App() {
     else await loadOccurrences(profile.id);
   }, [profile]);
 
-  // #24 — Excluir pendente
   const handleDelete = async (id: string): Promise<void> => {
     await db.collection('occurrences').doc(id).delete();
     setOccurrences(prev => prev.filter(o => o.id !== id));
   };
 
-  // RF07 — Editar pendente
   const handleEdit = async (updated: OccurrenceRecord): Promise<void> => {
     await db.collection('occurrences').doc(updated.id).set(
       { description: updated.description, severity: updated.severity },
@@ -180,7 +218,6 @@ export default function App() {
     setOccurrences(prev => prev.map(o => o.id === updated.id ? updated : o));
   };
 
-  // RF09 + RF10 — Admin altera status e gera notificação
   const handleUpdateStatus = async (
     id: string, newStatus: OccurrenceStatus, targetUserId: string,
   ): Promise<void> => {
@@ -188,31 +225,42 @@ export default function App() {
     if (!target) return;
     await db.collection('occurrences').doc(id).set({ status: newStatus }, { merge: true });
     setOccurrences(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
-    const notif: Notification = {
-      id:           `notif-${Date.now()}`,
+    const notifData = {
       userId:       targetUserId,
       occurrenceId: id,
       protocol:     target.protocol,
       message:      `Sua ocorrência no ${target.place.name} foi atualizada para "${newStatus}".`,
       dateTime:     getNowFormatted(),
+      createdAt:    Date.now(),
       read:         false,
       newStatus,
     };
-    await db.collection('notifications').add(notif);
-    setNotifications(prev => [notif, ...prev]);
+    try {
+      const docRef = await db.collection('notifications').add(notifData);
+      const notif: Notification = { id: docRef.id, ...notifData };
+      setNotifications(prev => [notif, ...prev]);
+    } catch (err) {
+      console.warn('Erro ao salvar notificação:', err);
+    }
   };
 
-  const handleMarkRead    = (id: string) =>
+  const handleMarkRead = async (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  const handleMarkAllRead = () =>
+    try { await db.collection('notifications').doc(id).set({ read: true }, { merge: true }); } catch {}
+  };
+  const handleMarkAllRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    try {
+      const batch = db.batch();
+      notifications.forEach(n => {
+        if (!n.read) batch.set(db.collection('notifications').doc(n.id), { read: true }, { merge: true });
+      });
+      await batch.commit();
+    } catch {}
+  };
 
-  // ── Render ──────────────────────────────────────────────────────────────
-
-  // Mostra nada apenas se ainda está carregando E já detectou sessão
   if (authLoading && profile !== null) return null;
 
-  // ✅ Sem sessão → Login ou Cadastro
   if (!profile) {
     return (
       <>
@@ -237,7 +285,6 @@ export default function App() {
     );
   }
 
-  // Tela de confirmação pós-envio
   if (visitorStack.screen === 'confirmation') {
     return (
       <>
@@ -257,7 +304,11 @@ export default function App() {
     return (
       <View style={{ flex: 1 }}>
         <StatusBar barStyle="dark-content" backgroundColor="#F7F8FA" />
-        <AdminScreen occurrences={occurrences} onUpdateStatus={handleUpdateStatus} />
+        <AdminScreen
+          occurrences={occurrences}
+          onUpdateStatus={handleUpdateStatus}
+          onLogout={handleLogout}
+        />
       </View>
     );
   }
@@ -287,6 +338,7 @@ export default function App() {
             notifications={notifications.filter(n => n.userId === profile.id)}
             onMarkRead={handleMarkRead}
             onMarkAllRead={handleMarkAllRead}
+            onRefresh={() => fetchNotifications(profile.id)}
           />
         );
       case 'perfil':

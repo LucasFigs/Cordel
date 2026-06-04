@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Notification, OccurrenceStatus } from '../types';
@@ -7,6 +7,7 @@ interface AlertsScreenProps {
   notifications: Notification[];
   onMarkRead:    (id: string) => void;
   onMarkAllRead: () => void;
+  onRefresh:     () => void;
 }
 
 const STATUS_COLOR: Record<OccurrenceStatus, { color: string; bg: string; icon: any }> = {
@@ -16,8 +17,10 @@ const STATUS_COLOR: Record<OccurrenceStatus, { color: string; bg: string; icon: 
   'Resolvido':    { color: '#059669', bg: '#ECFDF5', icon: 'checkmark-circle-outline' },
 };
 
-export function AlertsScreen({ notifications, onMarkRead, onMarkAllRead }: AlertsScreenProps) {
+export function AlertsScreen({ notifications, onMarkRead, onMarkAllRead, onRefresh }: AlertsScreenProps) {
   const unread = notifications.filter(n => !n.read).length;
+
+  useEffect(() => { onRefresh(); }, []);
 
   return (
     <View style={al.root}>
